@@ -1,13 +1,24 @@
 ﻿using ImGuiNET;
+using Raylib_CSharp;
 using Raylib_CSharp.Colors;
 using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Textures;
 using Raylib_CSharp.Windowing;
+using Raylib_CSharp.Interact;
 using rlImGui_cs;
+using System.Net;
+using System.Net.Sockets;
 using System.Numerics;
+using Common;
+using Client;
 
 class ClientMain
 {
+    static String addressBuf = new String("");
+    static MessageHandler messageHandler;
+    static ClientState clientState;
+    static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
     static void Main(string[] args)
     {
         Window.Init(600, 600, "Title");
@@ -15,9 +26,12 @@ class ClientMain
         rlImGui.Setup(true);
         bool dockspaceOpen = true;
 
+        var lastMouse = Input.GetMousePosition();
         while (!Window.ShouldClose())
         {
             Graphics.BeginDrawing();
+
+            var mouse = Input.GetMousePosition();
 
             // Raylib
             Graphics.ClearBackground(Color.SkyBlue);
@@ -44,6 +58,27 @@ class ClientMain
                 uint id = ImGui.GetID("MyDockspace");
                 ImGui.DockSpace(id, new Vector2(0, 0), ImGuiDockNodeFlags.None);
             }
+
+
+            Vector2 winPos = ImGui.GetWindowPos();
+            Vector2 padding = ImGui.GetStyle().FramePadding;
+            // Render to raylib render texture
+            {
+                Graphics.BeginTextureMode(renderTarget);
+                Graphics.ClearBackground(Color.SkyBlue);
+                Graphics.DrawText("Basic Window!", 10, 10, 10, Color.White);
+                Graphics.DrawCircle((int)(mouse.X - winPos.X - padding.X), (int)(mouse.Y - winPos.Y - padding.Y * 4), 5, Color.White);
+
+                if (clientState != null)
+                {
+                    foreach (var item in clientState.clients)
+                    {
+                        Graphics.DrawCircle((int)(item.Value.mouseX - winPos.X - padding.X), (int)(item.Value.mouseY - winPos.Y - padding.Y * 4), 5, Color.White);
+                    }
+                }
+                Graphics.EndTextureMode();
+            }
+
             ImGui.Begin("Render Target");
             rlImGui.ImageRenderTexture(renderTarget);
             ImGui.End();
@@ -51,7 +86,7 @@ class ClientMain
             ImGui.Begin("Config Panel");
             ImGui.End();
 
-            ImGui.End();
+            ImGui.End(); // Dockspace
             rlImGui.End();
 
             Graphics.EndDrawing();
