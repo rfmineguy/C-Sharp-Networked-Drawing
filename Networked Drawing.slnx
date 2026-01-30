@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Sequence.mmd" />
+  </Folder>
   <Project Path="Client/Client.csproj" />
+  <Project Path="Common/Common.csproj" Id="f93cf98f-8e91-44b9-a8f7-1527e22fbb10" />
   <Project Path="Server/Server.csproj" />
 </Solution>
